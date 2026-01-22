@@ -115,21 +115,21 @@ class SellerWalletController extends Controller
 
     // 🌍 PRODUCTION MODE (real Flutterwave)
     $response = Http::withToken(config('services.flutterwave.secret_key'))
-        ->timeout(30)
-        ->post('https://api.flutterwave.com/v3/subaccounts', [
-            'account_bank'    => $bank->bank_code,
-            'account_number'  => $bank->account_number,
-            'business_name'   => $user->name,
-            'business_email'  => $user->email,
-            'business_mobile' => $user->phone,
-            'split_type'      => 'percentage',
-            'split_value'     => 90,
-            'country'         => 'NG',
-        ]);
+    ->timeout(30)
+    ->post('https://api.flutterwave.com/v3/subaccounts', [
+        'account_bank' => $bank->bank_code,
+        'account_number' => $bank->account_number,
+        'business_name' => $user->name,
+        'business_email' => $user->email,
+        'split_type' => 'percentage',
+        'split_value' => 90,
+        'business_mobile' => $user->phone ?? '08000000000',
+    ]);
 
-    if (!$response->successful()) {
-        return back()->withErrors('Unable to create Flutterwave subaccount. Try again.');
-    }
+if ($response->failed()) {
+    dd($response->status(), $response->body());
+}
+
 
     $res = $response->json();
 
