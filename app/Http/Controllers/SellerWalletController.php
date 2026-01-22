@@ -60,35 +60,35 @@ class SellerWalletController extends Controller
         //         'split_value' => 85
         //     ]);
         // ULTIMATE
-        // $response = Http::withToken(config('services.flutterwave.secret_key'))
-        //     ->post('https://api.flutterwave.com/v3/subaccounts', [
-        //         'account_bank' => $bank->bank_code,
-        //         'account_number' => $bank->account_number,
-        //         'business_name' => auth()->user()->name,
-        //         'business_email' => auth()->user()->email,
-        //         'split_type' => 'percentage', // or flat
-        //         'split_value' => 90,          // seller gets 90%, admin 10%
-        //         'business_mobile' => auth()->user()->phone,
-        //     ]);
+        $response = Http::withToken(config('services.flutterwave.secret_key'))
+            ->post('https://api.flutterwave.com/v3/subaccounts', [
+                'account_bank' => $bank->bank_code,
+                'account_number' => $bank->account_number,
+                'business_name' => auth()->user()->name,
+                'business_email' => auth()->user()->email,
+                'split_type' => 'percentage', // or flat
+                'split_value' => 90,          // seller gets 90%, admin 10%
+                'business_mobile' => auth()->user()->phone,
+            ]);
 
-        // $res = $response->json();
+        $res = $response->json();
 
-        // if ($res['status'] === 'success') {
-        //     $bank->flutterwave_subaccount_id = $res['data']['id'];
-        //     $bank->is_verified = 1;
-        //     $bank->save();
-        // }
+        if ($res['status'] === 'success') {
+            $bank->flutterwave_subaccount_id = $res['data']['id'];
+            $bank->is_verified = 1;
+            $bank->save();
+        }
 
 
         // 👇 LOCAL MODE — NO FLUTTERWAVE CALL
-        if (app()->environment('local')) {
+        // if (app()->environment('local')) {
 
-            $bank->update([
-                'flutterwave_subaccount_id' => 'LOCAL_SUB_' . Str::random(12),
-                'is_verified' => true
-            ]);
+        //     $bank->update([
+        //         'flutterwave_subaccount_id' => 'LOCAL_SUB_' . Str::random(12),
+        //         'is_verified' => true
+        //     ]);
 
-            return back()->with('success', 'Bank details saved (Local mode – subaccount mocked)');
-        }
+        //     return back()->with('success', 'Bank details saved (Local mode – subaccount mocked)');
+        // }
     }
 }
