@@ -122,7 +122,7 @@ class SellerWalletController extends Controller
         'business_name' => $user->name,
         'business_email' => $user->email,
         'split_type' => 'percentage',
-        'split_value' => 90,
+        'split_value' => 0.9,
         'business_mobile' => $user->phone ?? '08000000000',
     ]);
 
