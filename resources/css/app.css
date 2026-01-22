@@ -1,0 +1,366 @@
+/******************************
+   ADMIN LAYOUT WRAPPER
+******************************/
+.admin-wrapper {
+    display: flex;
+    min-height: 100vh;
+    background: #f8fafc;
+}
+
+/******************************
+   SIDEBAR
+******************************/
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 260px;
+    height: 100vh;
+    background: #0f172a;
+    color: #fff;
+    transition: width 0.3s ease, transform 0.3s ease;
+    z-index: 1050;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* COLLAPSED (DESKTOP ICON MODE) */
+.sidebar.collapsed {
+    width: 70px;
+}
+
+/******************************
+   SIDEBAR HEADER
+******************************/
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    border-bottom: 1px solid #1e293b;
+}
+
+.sidebar-header h4 {
+    font-size: 18px;
+    margin: 0;
+    white-space: nowrap;
+    transition: opacity 0.2s ease;
+}
+
+/* hide text when collapsed */
+.sidebar.collapsed .sidebar-header h4 {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* hamburger INSIDE sidebar */
+.sidebar-toggle {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 1.4rem;
+    cursor: pointer;
+}
+
+/******************************
+   SIDEBAR LINKS
+******************************/
+.sidebar-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1;
+}
+
+.sidebar-links li a {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px;
+    color: #cbd5f5;
+    text-decoration: none;
+    transition: background 0.2s ease;
+    white-space: nowrap;
+}
+
+.sidebar-links li a:hover {
+    background: #1e293b;
+    color: #fff;
+}
+
+.sidebar-links i {
+    font-size: 1.3rem;
+    min-width: 24px;
+    text-align: center;
+}
+
+/* hide link text when collapsed */
+.sidebar.collapsed .sidebar-links span {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/******************************
+   SIDEBAR FOOTER
+******************************/
+.sidebar-footer {
+    padding: 16px;
+    border-top: 1px solid #1e293b;
+}
+
+.logout-btn {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: #f87171;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+/* hide logout text when collapsed */
+.sidebar.collapsed .logout-btn span {
+    opacity: 0;
+}
+
+/******************************
+   ADMIN CONTENT
+******************************/
+.admin-content {
+    margin-left: 260px;
+    padding: 20px;
+    transition: margin-left 0.3s ease;
+    width: 100%;
+}
+
+.blogger-content {
+    margin-left: 260px;
+    padding: 20px;
+    transition: margin-left 0.3s ease;
+    /* width: 100%; */
+}
+
+/* adjust content when collapsed */
+.sidebar.collapsed ~ .admin-content {
+    margin-left: 70px;
+}
+
+.has-sub .submenu {
+    list-style: none;
+    padding-left: 40px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.has-sub.open .submenu {
+    max-height: 200px; /* enough for 2–3 links */
+}
+
+.has-sub .arrow {
+    transition: transform 0.3s ease;
+}
+
+.has-sub.open .arrow {
+    transform: rotate(180deg);
+}
+
+
+/******************************
+   MOBILE BEHAVIOR
+******************************/
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        width: 260px;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .sidebar.collapsed {
+        width: 260px; /* ignore collapse on mobile */
+    }
+
+    .admin-content {
+        margin-left: 0;
+    }
+}
+
+
+
+/****************************** END OF SIDEBAR STYLING  ************************/
+
+/***************************** FOR DASHBOARD ***************************/
+
+.container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 30px auto;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .icon-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .card-text p {
+            margin: 0;
+        }
+
+        .card-text .label {
+            color: #777;
+            font-size: 0.9rem;
+        }
+
+        .card-text .value {
+            font-size: 1.6rem;
+            font-weight: bold;
+        }
+
+        /* Icon Colors */
+        .blue { background-color: #0d6efd; }
+        .green { background-color: #198754; }
+        .yellow { background-color: #ffc107; color: #333; }
+        .red { background-color: #dc3545; }
+        .purple { background-color: #6f42c1; }
+        .pink { background-color: #d63384; }
+        .indigo { background-color: #6610f2; }
+        .teal { background-color: #20c997; }
+
+        /* Welcome Card */
+        .welcome-card {
+            margin-top: 30px;
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+        }
+
+        .welcome-card h3 {
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .card-text .value {
+                font-size: 1.3rem;
+            }
+        }
+
+
+
+
+
+
+
+.page-title {
+    margin-bottom: 20px;
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 20px;
+}
+
+.product-card {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    text-align: center;
+    transition: transform 0.2s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+}
+
+.product-name {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.product-image {
+    width: 100%;
+    height: 150px;
+    margin-bottom: 10px;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.product-price {
+    font-weight: bold;
+    margin: 8px 0;
+}
+
+.product-desc {
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.status {
+    display: inline-block;
+    padding: 5px 10px;
+    font-size: 12px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.status.approved {
+    background: #e6f7ee;
+    color: #1e8e5a;
+}
+
+.status.pending {
+    background: #fff3cd;
+    color: #856404;
+}
