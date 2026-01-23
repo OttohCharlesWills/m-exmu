@@ -9,6 +9,7 @@ use App\Http\Controllers\Seller\WithdrawalController;
 use App\Http\Controllers\Buyer\CheckoutController;
 use App\Http\Controllers\SellerWalletController;
 use App\Models\Product;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -22,11 +23,25 @@ use Illuminate\Support\Facades\Auth;
 |
 */
 
+Route::get('/email/verify', function () {
+    return view('auth.verify');
+})->middleware('auth')->name('verification.notice');
+
+Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+    $request->fulfill();
+    return redirect('/home');
+})->middleware(['auth', 'signed'])->name('verification.verify');
+
+Route::post('/email/verification-notification', function (Request $request) {
+    $request->user()->sendEmailVerificationNotification();
+    return back()->with('message', 'Verification link sent!');
+})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+
 Route::get('/', function () {
     return view('/welcome');
 });
 
-Auth::routes();
+Auth::routes(['verify' => true]);
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
