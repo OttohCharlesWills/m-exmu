@@ -9,6 +9,7 @@ use App\Http\Controllers\Seller\WithdrawalController;
 use App\Http\Controllers\Buyer\CheckoutController;
 use App\Http\Controllers\SellerWalletController;
 use App\Models\Product;
+use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
