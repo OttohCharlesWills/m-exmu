@@ -45,10 +45,12 @@ class SellerWalletController extends Controller
 
     // PRODUCTION — Flutterwave real resolve
     $response = Http::withToken(config('services.flutterwave.secret_key'))
+        ->withHeaders(['Content-Type' => 'application/json'])
         ->post('https://api.flutterwave.com/v3/accounts/resolve', [
             'account_number' => $request->account_number,
             'account_bank'   => $request->bank_code,
         ]);
+
 
     if ($response->failed()) {
     return response()->json([
