@@ -29,6 +29,43 @@ class SellerWalletController extends Controller
         ]);
     }
 
+    public function resolveBank(Request $request)
+{
+    $request->validate([
+        'bank_code' => 'required',
+        'account_number' => 'required|digits:10',
+    ]);
+
+    // LOCAL MODE — fake response so frontend works
+    if (app()->environment('local')) {
+        return response()->json([
+            'account_name' => 'JOHN DOE'
+        ]);
+    }
+
+    // PRODUCTION — Flutterwave real resolve
+    $response = Http::withToken(config('services.flutterwave.secret_key'))
+        ->post('https://api.flutterwave.com/v3/accounts/resolve', [
+            'account_number' => $request->account_number,
+            'account_bank'   => $request->bank_code,
+        ]);
+
+    if ($response->failed()) {
+        return response()->json(['account_name' => null], 400);
+    }
+
+    $res = $response->json();
+
+    if ($res['status'] !== 'success') {
+        return response()->json(['account_name' => null], 400);
+    }
+
+    return response()->json([
+        'account_name' => $res['data']['account_name']
+    ]);
+}
+
+
     // public function storeBank(Request $request)
     // {
     //     $request->validate([
@@ -186,34 +223,34 @@ class SellerWalletController extends Controller
 }
 
 
-public function resolveBank(Request $request)
-{
-    $request->validate([
-        'bank_code' => 'required',
-        'account_number' => 'required|digits:10',
-    ]);
+// public function resolveBank(Request $request)
+// {
+//     $request->validate([
+//         'bank_code' => 'required',
+//         'account_number' => 'required|digits:10',
+//     ]);
 
-    $response = Http::withToken(config('services.flutterwave.secret_key'))
-        ->timeout(30)
-        ->get('https://api.flutterwave.com/v3/accounts/resolve', [
-            'account_bank'   => $request->bank_code,
-            'account_number' => $request->account_number,
-        ]);
+//     $response = Http::withToken(config('services.flutterwave.secret_key'))
+//         ->timeout(30)
+//         ->get('https://api.flutterwave.com/v3/accounts/resolve', [
+//             'account_bank'   => $request->bank_code,
+//             'account_number' => $request->account_number,
+//         ]);
 
-    if ($response->failed()) {
-        return response()->json(['error' => 'Verification failed'], 422);
-    }
+//     if ($response->failed()) {
+//         return response()->json(['error' => 'Verification failed'], 422);
+//     }
 
-    $res = $response->json();
+//     $res = $response->json();
 
-    if (($res['status'] ?? '') !== 'success') {
-        return response()->json(['error' => $res['message']], 422);
-    }
+//     if (($res['status'] ?? '') !== 'success') {
+//         return response()->json(['error' => $res['message']], 422);
+//     }
 
-    return response()->json([
-        'account_name' => $res['data']['account_name']
-    ]);
-}
+//     return response()->json([
+//         'account_name' => $res['data']['account_name']
+//     ]);
+// }
 
 
 
