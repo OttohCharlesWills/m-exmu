@@ -122,31 +122,26 @@
 
 {{-- 🔥 AUTO VERIFY SCRIPT --}}
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', () => {
     const bankSelect = document.getElementById('bank_code');
     const acctInput  = document.getElementById('account_number');
     const nameInput  = document.getElementById('account_name');
 
-    let controller = null;
+    let timeout = null;
 
-    acctInput.addEventListener('keyup', function () {
-        const accountNumber = acctInput.value.trim();
+    function verifyAccount() {
         const bankCode = bankSelect.value;
+        const accountNumber = acctInput.value.trim();
 
-        if (accountNumber.length !== 10 || !bankCode) {
+        if (!bankCode || accountNumber.length !== 10) {
             nameInput.value = '';
             return;
         }
 
-        // cancel previous request
-        if (controller) controller.abort();
-        controller = new AbortController();
-
-        nameInput.value = 'Verifying...';
+        nameInput.value = 'Verifying…';
 
         fetch('/resolve-bank', {
             method: 'POST',
-            signal: controller.signal,
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -161,13 +156,22 @@ document.addEventListener('DOMContentLoaded', function () {
             if (data.account_name) {
                 nameInput.value = data.account_name;
             } else {
-                nameInput.value = '';
+                nameInput.value = 'Account not found';
             }
         })
-        .catch(() => {
-            nameInput.value = '';
+        .catch(err => {
+            console.error('Resolve error:', err);
+            nameInput.value = 'Verification failed';
         });
+    }
+
+    acctInput.addEventListener('input', () => {
+        clearTimeout(timeout);
+        timeout = setTimeout(verifyAccount, 600); // debounce
     });
+
+    bankSelect.addEventListener('change', verifyAccount);
 });
 </script>
+
 @endsection
