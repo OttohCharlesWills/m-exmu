@@ -96,12 +96,14 @@
             {{-- Account Name (AUTO FILLED) --}}
             <div class="mb-3">
                 <label class="block font-medium mb-1">Account Name</label>
-                <input type="text"
-                       id="account_name"
-                       name="account_name"
-                       value="{{ old('account_name', $bank->account_name ?? '') }}"
-                       class="w-full border p-2 rounded bg-gray-100"
-                       readonly>
+                <input
+  type="text"
+  id="account_name"
+  name="account_name"
+  readonly
+  class="w-full border p-2 rounded bg-gray-100"
+/>
+
                 <small class="text-gray-500">Auto-filled after verification</small>
             </div>
 
@@ -128,17 +130,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const nameInput  = document.getElementById('account_name');
 
     let timeout = null;
+    let controller = null;
 
     function verifyAccount() {
         const bankCode = bankSelect.value;
         const accountNumber = acctInput.value.trim();
 
-        if (!bankCode || accountNumber.length !== 10) {
-            nameInput.value = '';
-            return;
-        }
+        if (!bankCode || accountNumber.length !== 10) return;
 
-        nameInput.value = 'Verifying…';
+        // kill previous request
+        if (controller) controller.abort();
+        controller = new AbortController();
+
+        nameInput.value = 'Verifying...';
+        nameInput.classList.remove('text-red-500');
+        nameInput.classList.add('text-gray-500');
 
         fetch('/resolve-bank', {
             method: 'POST',
@@ -149,29 +155,43 @@ document.addEventListener('DOMContentLoaded', () => {
             body: JSON.stringify({
                 bank_code: bankCode,
                 account_number: accountNumber
-            })
+            }),
+            signal: controller.signal
         })
         .then(res => res.json())
         .then(data => {
             if (data.account_name) {
                 nameInput.value = data.account_name;
+                nameInput.classList.remove('text-gray-500');
             } else {
                 nameInput.value = 'Account not found';
+                nameInput.classList.remove('text-gray-500');
+                nameInput.classList.add('text-red-500');
             }
         })
         .catch(err => {
-            console.error('Resolve error:', err);
-            nameInput.value = 'Verification failed';
+            if (err.name !== 'AbortError') {
+                nameInput.value = 'Verification failed';
+                nameInput.classList.add('text-red-500');
+            }
         });
     }
 
     acctInput.addEventListener('input', () => {
         clearTimeout(timeout);
-        timeout = setTimeout(verifyAccount, 600); // debounce
+
+        if (acctInput.value.trim().length === 10) {
+            timeout = setTimeout(verifyAccount, 700);
+        }
     });
 
-    bankSelect.addEventListener('change', verifyAccount);
+    bankSelect.addEventListener('change', () => {
+        if (acctInput.value.trim().length === 10) {
+            verifyAccount();
+        }
+    });
 });
 </script>
+
 
 @endsection
