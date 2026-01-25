@@ -51,8 +51,11 @@ class SellerWalletController extends Controller
         ]);
 
     if ($response->failed()) {
-        return response()->json(['account_name' => null], 400);
-    }
+    return response()->json([
+        'error' => $response->json(),
+    ], 400);
+}
+
 
     $res = $response->json();
 
