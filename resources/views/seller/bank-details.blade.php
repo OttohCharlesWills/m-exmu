@@ -32,86 +32,84 @@
         @endif
 
         <form action="{{ route('seller.bank.store') }}" method="POST">
-            @csrf
+    @csrf
 
-            {{-- Bank Name (Label only, optional but fine) --}}
-            <div class="mb-3">
-                <label class="block font-medium mb-1">Bank Name</label>
-                <input type="text"
-                       name="bank_name"
-                       value="{{ old('bank_name', $bank->bank_name ?? '') }}"
-                       class="w-full border p-2 rounded"
-                       placeholder="e.g. Zenith Bank"
-                       required>
-            </div>
+    {{-- ACCOUNT NUMBER FIRST --}}
+    <div class="mb-3">
+        <label class="block font-medium mb-1">Account Number</label>
+        <input
+            type="text"
+            id="account_number"
+            name="account_number"
+            maxlength="10"
+            class="w-full border p-2 rounded"
+            placeholder="Enter 10-digit account number"
+            required
+        />
+    </div>
 
-            {{-- Bank Code --}}
-            <div class="mb-3">
-                <label class="block font-medium mb-1">Select Bank</label>
-                <select name="bank_code" id="bank_code" class="w-full border p-2 rounded" required>
-                    <option value="">Select your bank</option>
-                    @php
-                        $banks = [
-                            '011' => 'First Bank',
-                            '058' => 'GTBank',
-                            '044' => 'Access Bank',
-                            '033' => 'UBA',
-                            '057' => 'Zenith Bank',
-                            '032' => 'Union Bank',
-                            '035' => 'Wema Bank',
-                            '076' => 'Polaris Bank',
-                            '050' => 'EcoBank',
-                            '215' => 'Stanbic IBTC',
-                            '232' => 'Sterling Bank',
-                            '221' => 'Unity Bank',
-                            '301' => 'Jaiz Bank',
-                            '070' => 'Keystone Bank',
-                            '063' => 'Fidelity Bank',
-                            '056' => 'Heritage Bank'
-                        ];
-                    @endphp
+    {{-- BANK (LOCKED UNTIL ACCOUNT NUMBER IS VALID) --}}
+    <div class="mb-3">
+        <label class="block font-medium mb-1">Select Bank</label>
+        <select
+            name="bank_code"
+            id="bank_code"
+            class="w-full border p-2 rounded"
+            disabled
+            required
+        >
+            <option value="">Select bank</option>
+            @php
+                $banks = [
+                    '011' => 'First Bank',
+                    '058' => 'GTBank',
+                    '044' => 'Access Bank',
+                    '033' => 'UBA',
+                    '057' => 'Zenith Bank',
+                    '032' => 'Union Bank',
+                    '035' => 'Wema Bank',
+                    '076' => 'Polaris Bank',
+                    '050' => 'EcoBank',
+                    '215' => 'Stanbic IBTC',
+                    '232' => 'Sterling Bank',
+                    '221' => 'Unity Bank',
+                    '301' => 'Jaiz Bank',
+                    '070' => 'Keystone Bank',
+                    '063' => 'Fidelity Bank',
+                    '056' => 'Heritage Bank'
+                ];
+            @endphp
 
-                    @foreach($banks as $code => $name)
-                        <option value="{{ $code }}"
-                            {{ old('bank_code', $bank->bank_code ?? '') == $code ? 'selected' : '' }}>
-                            {{ $name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+            @foreach($banks as $code => $name)
+                <option value="{{ $code }}">{{ $name }}</option>
+            @endforeach
+        </select>
+    </div>
 
-            {{-- Account Number --}}
-            <div class="mb-3">
-                <label class="block font-medium mb-1">Account Number</label>
-                <input type="text"
-                       id="account_number"
-                       name="account_number"
-                       maxlength="10"
-                       value="{{ old('account_number', $bank->account_number ?? '') }}"
-                       class="w-full border p-2 rounded"
-                       placeholder="10-digit account number"
-                       required>
-            </div>
+    {{-- ACCOUNT NAME (AUTO ONLY) --}}
+    <div class="mb-3">
+        <label class="block font-medium mb-1">Account Name</label>
+        <input
+            type="text"
+            id="account_name"
+            name="account_name"
+            readonly
+            class="w-full border p-2 rounded bg-gray-100"
+            placeholder="Will auto-fill after verification"
+        />
+    </div>
 
-            {{-- Account Name (AUTO FILLED) --}}
-            <div class="mb-3">
-                <label class="block font-medium mb-1">Account Name</label>
-                <input
-  type="text"
-  id="account_name"
-  name="account_name"
-  readonly
-  class="w-full border p-2 rounded bg-gray-100"
-/>
+    {{-- HIDDEN BANK NAME (SERVER FILLS THIS) --}}
+    <input type="hidden" name="bank_name" id="bank_name" />
 
-                <small class="text-gray-500">Auto-filled after verification</small>
-            </div>
+    <button
+        type="submit"
+        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+    >
+        Save Bank Details
+    </button>
+</form>
 
-            <button type="submit"
-                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                Save Bank Details
-            </button>
-        </form>
 
         {{-- Verified --}}
         @if(isset($bank) && $bank->is_verified)
@@ -125,26 +123,37 @@
 {{-- 🔥 AUTO VERIFY SCRIPT --}}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const bankSelect = document.getElementById('bank_code');
     const acctInput  = document.getElementById('account_number');
+    const bankSelect = document.getElementById('bank_code');
     const nameInput  = document.getElementById('account_name');
+    const bankName   = document.getElementById('bank_name');
 
-    let timeout = null;
     let controller = null;
 
-    function verifyAccount() {
-        const bankCode = bankSelect.value;
+    // Step 1: Enable bank list only when account number is valid
+    acctInput.addEventListener('input', () => {
+        nameInput.value = '';
+        bankSelect.value = '';
+        bankName.value = '';
+
+        if (acctInput.value.trim().length === 10) {
+            bankSelect.disabled = false;
+        } else {
+            bankSelect.disabled = true;
+        }
+    });
+
+    // Step 2: Resolve account AFTER bank is selected
+    bankSelect.addEventListener('change', () => {
         const accountNumber = acctInput.value.trim();
+        const bankCode = bankSelect.value;
 
         if (!bankCode || accountNumber.length !== 10) return;
 
-        // kill previous request
         if (controller) controller.abort();
         controller = new AbortController();
 
-        nameInput.value = 'Verifying...';
-        nameInput.classList.remove('text-red-500');
-        nameInput.classList.add('text-gray-500');
+        nameInput.value = 'Verifying…';
 
         fetch('/resolve-bank', {
             method: 'POST',
@@ -153,8 +162,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
             body: JSON.stringify({
-                bank_code: bankCode,
-                account_number: accountNumber
+                account_number: accountNumber,
+                bank_code: bankCode
             }),
             signal: controller.signal
         })
@@ -162,36 +171,20 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(data => {
             if (data.account_name) {
                 nameInput.value = data.account_name;
-                nameInput.classList.remove('text-gray-500');
+                bankName.value = bankSelect.options[bankSelect.selectedIndex].text;
             } else {
                 nameInput.value = 'Account not found';
-                nameInput.classList.remove('text-gray-500');
-                nameInput.classList.add('text-red-500');
             }
         })
         .catch(err => {
             if (err.name !== 'AbortError') {
                 nameInput.value = 'Verification failed';
-                nameInput.classList.add('text-red-500');
             }
         });
-    }
-
-    acctInput.addEventListener('input', () => {
-        clearTimeout(timeout);
-
-        if (acctInput.value.trim().length === 10) {
-            timeout = setTimeout(verifyAccount, 700);
-        }
-    });
-
-    bankSelect.addEventListener('change', () => {
-        if (acctInput.value.trim().length === 10) {
-            verifyAccount();
-        }
     });
 });
 </script>
+
 
 
 @endsection
