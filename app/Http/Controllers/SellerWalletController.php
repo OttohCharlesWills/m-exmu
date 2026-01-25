@@ -36,7 +36,7 @@ class SellerWalletController extends Controller
         'account_number' => 'required|digits:10',
     ]);
 
-    // LOCAL MODE — fake response so frontend works
+    // LOCAL MODE — fake response
     if (app()->environment('local')) {
         return response()->json([
             'account_name' => 'JOHN DOE'
@@ -44,26 +44,18 @@ class SellerWalletController extends Controller
     }
 
     // PRODUCTION — Flutterwave real resolve
-$response = Http::withToken(config('services.flutterwave.secret_key'))
-    ->get('https://api.flutterwave.com/v3/accounts/resolve?account_number={$request->account_number}&account_bank={$request->bank_code}', [
-        'account_number' => $request->account_number,
-        'account_bank'   => $request->bank_code,
-    ]);
+    $url = "https://api.flutterwave.com/v3/accounts/resolve?account_number={$request->account_number}&account_bank={$request->bank_code}";
 
+    $response = Http::withToken(config('services.flutterwave.secret_key'))
+        ->timeout(30)
+        ->get($url);
 
-
-    if ($response->failed()) {
-    return response()->json([
-        'error' => $response->json(),
-    ], 400);
-}
-
-
-    // $res = $response->json();
+    // Log response for debugging
     logger('Flutterwave resolve response', $response->json());
 
+    $res = $response->json();
 
-    if ($res['status'] !== 'success') {
+    if (($res['status'] ?? '') !== 'success') {
         return response()->json(['account_name' => null], 400);
     }
 
@@ -71,6 +63,7 @@ $response = Http::withToken(config('services.flutterwave.secret_key'))
         'account_name' => $res['data']['account_name']
     ]);
 }
+
 
 
     // public function storeBank(Request $request)
