@@ -107,3 +107,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/seller/bank', [SellerWalletController::class, 'index'])->name('seller.wallet');
     Route::post('/seller/bank-account', [SellerWalletController::class, 'storeBank'])->name('seller.bank.store');
 });
+
+Route::post('/resolve-bank', [SellerWalletController::class, 'resolveBank'])
+    ->middleware('auth');
+

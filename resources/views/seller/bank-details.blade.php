@@ -6,11 +6,16 @@
 
     {{-- Wallet Balance --}}
     <div class="mb-6 p-4 border rounded bg-gray-100">
-        <p class="text-lg">Current Balance: <span class="font-bold">₦{{ number_format($wallet->balance, 2) }}</span></p>
-        <p>Status: <span class="font-medium">{{ ucfirst($wallet->status) }}</span></p>
+        <p class="text-lg">
+            Current Balance:
+            <span class="font-bold">₦{{ number_format($wallet->balance, 2) }}</span>
+        </p>
+        <p>Status:
+            <span class="font-medium">{{ ucfirst($wallet->status) }}</span>
+        </p>
     </div>
 
-    {{-- Bank Details Form --}}
+    {{-- Bank Details --}}
     <div class="p-4 border rounded">
         <h3 class="text-xl font-semibold mb-3">Bank Details</h3>
 
@@ -20,23 +25,30 @@
             </div>
         @endif
 
+        @if($errors->any())
+            <div class="mb-3 p-2 bg-red-200 text-red-800 rounded">
+                {{ $errors->first() }}
+            </div>
+        @endif
+
         <form action="{{ route('seller.bank.store') }}" method="POST">
             @csrf
 
-            {{-- Bank Name --}}
+            {{-- Bank Name (Label only, optional but fine) --}}
             <div class="mb-3">
                 <label class="block font-medium mb-1">Bank Name</label>
-                <input type="text" name="bank_name" value="{{ old('bank_name', $bank->bank_name ?? '') }}" 
-                       class="w-full border p-2 rounded" required>
-                @error('bank_name')
-                    <span class="text-red-600 text-sm">{{ $message }}</span>
-                @enderror
+                <input type="text"
+                       name="bank_name"
+                       value="{{ old('bank_name', $bank->bank_name ?? '') }}"
+                       class="w-full border p-2 rounded"
+                       placeholder="e.g. Zenith Bank"
+                       required>
             </div>
 
-            {{-- Bank Code Dropdown --}}
+            {{-- Bank Code --}}
             <div class="mb-3">
-                <label class="block font-medium mb-1">Bank</label>
-                <select name="bank_code" class="w-full border p-2 rounded" required>
+                <label class="block font-medium mb-1">Select Bank</label>
+                <select name="bank_code" id="bank_code" class="w-full border p-2 rounded" required>
                     <option value="">Select your bank</option>
                     @php
                         $banks = [
@@ -52,56 +64,110 @@
                             '215' => 'Stanbic IBTC',
                             '232' => 'Sterling Bank',
                             '221' => 'Unity Bank',
-                            '023' => 'CitiBank',
                             '301' => 'Jaiz Bank',
                             '070' => 'Keystone Bank',
-                            '068' => 'Standard Chartered Bank',
                             '063' => 'Fidelity Bank',
-                            '056' => 'Bank PHB / Heritage Bank'
+                            '056' => 'Heritage Bank'
                         ];
                     @endphp
 
                     @foreach($banks as $code => $name)
-                        <option value="{{ $code }}" {{ (old('bank_code', $bank->bank_code ?? '') == $code) ? 'selected' : '' }}>
+                        <option value="{{ $code }}"
+                            {{ old('bank_code', $bank->bank_code ?? '') == $code ? 'selected' : '' }}>
                             {{ $name }}
                         </option>
                     @endforeach
                 </select>
-                @error('bank_code')
-                    <span class="text-red-600 text-sm">{{ $message }}</span>
-                @enderror
             </div>
 
             {{-- Account Number --}}
             <div class="mb-3">
                 <label class="block font-medium mb-1">Account Number</label>
-                <input type="text" name="account_number" value="{{ old('account_number', $bank->account_number ?? '') }}" 
-                       class="w-full border p-2 rounded" required>
-                @error('account_number')
-                    <span class="text-red-600 text-sm">{{ $message }}</span>
-                @enderror
+                <input type="text"
+                       id="account_number"
+                       name="account_number"
+                       maxlength="10"
+                       value="{{ old('account_number', $bank->account_number ?? '') }}"
+                       class="w-full border p-2 rounded"
+                       placeholder="10-digit account number"
+                       required>
             </div>
 
-            {{-- Account Name --}}
+            {{-- Account Name (AUTO FILLED) --}}
             <div class="mb-3">
                 <label class="block font-medium mb-1">Account Name</label>
-                <input type="text" name="account_name" value="{{ old('account_name', $bank->account_name ?? '') }}" 
-                       class="w-full border p-2 rounded" required>
-                @error('account_name')
-                    <span class="text-red-600 text-sm">{{ $message }}</span>
-                @enderror
+                <input type="text"
+                       id="account_name"
+                       name="account_name"
+                       value="{{ old('account_name', $bank->account_name ?? '') }}"
+                       class="w-full border p-2 rounded bg-gray-100"
+                       readonly>
+                <small class="text-gray-500">Auto-filled after verification</small>
             </div>
 
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+            <button type="submit"
+                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                 Save Bank Details
             </button>
-
         </form>
 
-        {{-- Verified Badge --}}
+        {{-- Verified --}}
         @if(isset($bank) && $bank->is_verified)
-            <p class="mt-3 text-green-600">✅ Bank details verified with Flutterwave.</p>
+            <p class="mt-3 text-green-600 font-medium">
+                ✅ Bank details verified with Flutterwave
+            </p>
         @endif
     </div>
 </div>
+
+{{-- 🔥 AUTO VERIFY SCRIPT --}}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const bankSelect = document.getElementById('bank_code');
+    const acctInput  = document.getElementById('account_number');
+    const nameInput  = document.getElementById('account_name');
+
+    let controller = null;
+
+    acctInput.addEventListener('keyup', function () {
+        const accountNumber = acctInput.value.trim();
+        const bankCode = bankSelect.value;
+
+        if (accountNumber.length !== 10 || !bankCode) {
+            nameInput.value = '';
+            return;
+        }
+
+        // cancel previous request
+        if (controller) controller.abort();
+        controller = new AbortController();
+
+        nameInput.value = 'Verifying...';
+
+        fetch('/resolve-bank', {
+            method: 'POST',
+            signal: controller.signal,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                bank_code: bankCode,
+                account_number: accountNumber
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.account_name) {
+                nameInput.value = data.account_name;
+            } else {
+                nameInput.value = '';
+            }
+        })
+        .catch(() => {
+            nameInput.value = '';
+        });
+    });
+});
+</script>
 @endsection

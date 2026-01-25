@@ -29,6 +29,43 @@ class SellerWalletController extends Controller
         ]);
     }
 
+    public function resolveBank(Request $request)
+{
+    $request->validate([
+        'bank_code' => 'required',
+        'account_number' => 'required|digits:10',
+    ]);
+
+    // LOCAL MODE — fake response so frontend works
+    if (app()->environment('local')) {
+        return response()->json([
+            'account_name' => 'JOHN DOE'
+        ]);
+    }
+
+    // PRODUCTION — Flutterwave real resolve
+    $response = Http::withToken(config('services.flutterwave.secret_key'))
+        ->post('https://api.flutterwave.com/v3/accounts/resolve', [
+            'account_number' => $request->account_number,
+            'account_bank'   => $request->bank_code,
+        ]);
+
+    if ($response->failed()) {
+        return response()->json(['account_name' => null], 400);
+    }
+
+    $res = $response->json();
+
+    if ($res['status'] !== 'success') {
+        return response()->json(['account_name' => null], 400);
+    }
+
+    return response()->json([
+        'account_name' => $res['data']['account_name']
+    ]);
+}
+
+
     // public function storeBank(Request $request)
     // {
     //     $request->validate([
@@ -88,52 +125,92 @@ class SellerWalletController extends Controller
         'bank_name' => 'required',
         'bank_code' => 'required',
         'account_number' => 'required|digits:10',
-        'account_name' => 'required',
     ]);
 
     $user = auth()->user();
 
+    /*
+    |--------------------------------------------------------------------------
+    | 1️⃣ VERIFY ACCOUNT WITH FLUTTERWAVE
+    |--------------------------------------------------------------------------
+    */
+    $verify = Http::withToken(config('services.flutterwave.secret_key'))
+        ->timeout(30)
+        ->get('https://api.flutterwave.com/v3/accounts/resolve', [
+            'account_number' => $request->account_number,
+            'account_bank'   => $request->bank_code,
+        ]);
+
+    if ($verify->failed()) {
+        return back()->withErrors([
+            'account_number' => 'Unable to verify bank account. Try again.'
+        ]);
+    }
+
+    $verifyRes = $verify->json();
+
+    if (($verifyRes['status'] ?? '') !== 'success') {
+        return back()->withErrors([
+            'account_number' => $verifyRes['message'] ?? 'Invalid bank details'
+        ]);
+    }
+
+    $resolvedName = $verifyRes['data']['account_name'];
+
+    /*
+    |--------------------------------------------------------------------------
+    | 2️⃣ SAVE BANK DETAILS (REAL ACCOUNT NAME)
+    |--------------------------------------------------------------------------
+    */
     $bank = SellerBankAccount::updateOrCreate(
         ['user_id' => $user->id],
-        $request->only([
-            'bank_name',
-            'bank_code',
-            'account_number',
-            'account_name'
-        ])
+        [
+            'bank_name'     => $request->bank_name,
+            'bank_code'     => $request->bank_code,
+            'account_number'=> $request->account_number,
+            'account_name'  => $resolvedName,
+        ]
     );
 
-    // 🔥 LOCAL MODE (no Flutterwave)
+    /*
+    |--------------------------------------------------------------------------
+    | 3️⃣ LOCAL MODE (MOCK)
+    |--------------------------------------------------------------------------
+    */
     if (app()->environment('local')) {
         $bank->update([
             'flutterwave_subaccount_id' => 'LOCAL_SUB_' . Str::random(12),
             'is_verified' => true
         ]);
 
-        return back()->with('success', 'Bank details saved successfully.');
+        return back()->with('success', 'Bank verified & saved (local mode)');
     }
 
-    // 🌍 PRODUCTION MODE (real Flutterwave)
+    /*
+    |--------------------------------------------------------------------------
+    | 4️⃣ CREATE FLUTTERWAVE SUBACCOUNT (PRODUCTION)
+    |--------------------------------------------------------------------------
+    */
     $response = Http::withToken(config('services.flutterwave.secret_key'))
-    ->timeout(30)
-    ->post('https://api.flutterwave.com/v3/subaccounts', [
-        'account_bank' => $bank->bank_code,
-        'account_number' => $bank->account_number,
-        'business_name' => $user->name,
-        'business_email' => $user->email,
-        'split_type' => 'percentage',
-        'split_value' => 0.9,
-        'business_mobile' => $user->phone ?? '08000000000',
-    ]);
+        ->timeout(30)
+        ->post('https://api.flutterwave.com/v3/subaccounts', [
+            'account_bank'   => $bank->bank_code,
+            'account_number' => $bank->account_number,
+            'business_name'  => $user->name,
+            'business_email' => $user->email,
+            'business_mobile'=> $user->phone ?? '08000000000',
+            'split_type'     => 'percentage',
+            'split_value'    => 0.9,
+        ]);
 
-if ($response->failed()) {
-    dd($response->status(), $response->body());
-}
-
+    if ($response->failed()) {
+        logger()->error('Flutterwave subaccount error', $response->json());
+        return back()->withErrors('Flutterwave subaccount creation failed');
+    }
 
     $res = $response->json();
 
-    if ($res['status'] !== 'success') {
+    if (($res['status'] ?? '') !== 'success') {
         return back()->withErrors($res['message'] ?? 'Flutterwave error');
     }
 
@@ -142,8 +219,39 @@ if ($response->failed()) {
         'is_verified' => true
     ]);
 
-    return back()->with('success', 'Bank details saved successfully.');
+    return back()->with('success', 'Bank verified & subaccount created');
 }
+
+
+// public function resolveBank(Request $request)
+// {
+//     $request->validate([
+//         'bank_code' => 'required',
+//         'account_number' => 'required|digits:10',
+//     ]);
+
+//     $response = Http::withToken(config('services.flutterwave.secret_key'))
+//         ->timeout(30)
+//         ->get('https://api.flutterwave.com/v3/accounts/resolve', [
+//             'account_bank'   => $request->bank_code,
+//             'account_number' => $request->account_number,
+//         ]);
+
+//     if ($response->failed()) {
+//         return response()->json(['error' => 'Verification failed'], 422);
+//     }
+
+//     $res = $response->json();
+
+//     if (($res['status'] ?? '') !== 'success') {
+//         return response()->json(['error' => $res['message']], 422);
+//     }
+
+//     return response()->json([
+//         'account_name' => $res['data']['account_name']
+//     ]);
+// }
+
 
 
 }
