@@ -11,6 +11,7 @@ use App\Http\Controllers\SellerWalletController;
 use App\Models\Product;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\ProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -111,3 +112,19 @@ Route::middleware(['auth'])->group(function () {
 Route::post('/resolve-bank', [SellerWalletController::class, 'resolveBank'])
     ->middleware('auth');
 
+
+Route::view('blogger/settings', 'seller.settings.settings')->name('seller.settings.settings');
+
+Route::get('/seller/profile/account', [ProfileController::class, 'accountForm'])
+    ->name('seller.profile.account.form');
+
+Route::post('/seller/profile/account', [ProfileController::class, 'updateAccount'])
+    ->name('seller.profile.account');
+    
+Route::delete('/profile/delete', [ProfileController::class, 'deleteProfile'])->name('profile.delete');
+
+Route::view('/seller/password', 'seller.changeofpassword.dob')->name('seller.changeofpassword.dob');
+
+
+Route::post('/seller/profile/account', [ProfileController::class, 'updateAccount'])->name('seller.profile.account');
+Route::post('/seller/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('seller.profile.avatar');

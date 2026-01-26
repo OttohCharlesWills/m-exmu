@@ -54,7 +54,7 @@
                 </li>
 
                 <li>
-                    <a href="{{ route('seller.wallet') }}">
+                    <a href="{{ route('seller.settings.settings') }}">
                         <i class="bi bi-people"></i>
                         <span>Settings</span>
                     </a>
