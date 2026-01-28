@@ -50,33 +50,33 @@ public function index()
         'account_number' => 'required|digits:10',
     ]);
 
-    // LOCAL MODE — fake response
+    // LOCAL MODE
     if (app()->environment('local')) {
         return response()->json([
             'account_name' => 'JOHN DOE'
         ]);
     }
 
-    // PRODUCTION — Flutterwave real resolve
-    $url = "https://api.flutterwave.com/v3/accounts/resolve?account_number={$request->account_number}&account_bank={$request->bank_code}";
-
     $response = Http::withToken(config('services.flutterwave.secret_key'))
         ->timeout(30)
-        ->get($url);
+        ->get('https://api.flutterwave.com/v3/accounts/resolve', [
+            'account_number' => $request->account_number,
+            'account_bank'   => $request->bank_code,
+        ]);
 
-    // Log response for debugging
     logger('Flutterwave resolve response', $response->json());
 
     $res = $response->json();
 
     if (($res['status'] ?? '') !== 'success') {
-        return response()->json(['account_name' => null], 400);
+        return response()->json(['account_name' => null, 'error' => $res['message'] ?? 'Verification failed'], 400);
     }
 
     return response()->json([
         'account_name' => $res['data']['account_name']
     ]);
 }
+
 
 
 
