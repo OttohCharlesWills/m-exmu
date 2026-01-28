@@ -43,95 +43,82 @@ public function index()
 }
 
 
-    public function resolveBank(Request $request)
+//     public function resolveBank(Request $request)
+// {
+//     $request->validate([
+//         'bank_code' => 'required',
+//         'account_number' => 'required|digits:10',
+//     ]);
+
+//     // LOCAL MODE
+//     if (app()->environment('local')) {
+//         return response()->json([
+//             'account_name' => 'JOHN DOE'
+//         ]);
+//     }
+
+//     $response = Http::withToken(config('services.flutterwave.secret_key'))
+//         ->timeout(30)
+//         ->get('https://api.flutterwave.com/v3/accounts/resolve', [
+//             'account_number' => $request->account_number,
+//             'account_bank'   => $request->bank_code,
+//         ]);
+
+//     logger('Flutterwave resolve response', $response->json());
+
+//     $res = $response->json();
+
+//     if (($res['status'] ?? '') !== 'success') {
+//         return response()->json(['account_name' => null, 'error' => $res['message'] ?? 'Verification failed'], 400);
+//     }
+
+//     return response()->json([
+//         'account_name' => $res['data']['account_name']
+//     ]);
+// }
+
+
+public function resolveBank(Request $request)
 {
     $request->validate([
         'bank_code' => 'required',
         'account_number' => 'required|digits:10',
     ]);
 
-    // LOCAL MODE
-    if (app()->environment('local')) {
+    try {
+        $response = Http::withToken(config('services.flutterwave.secret_key'))
+            ->timeout(30)
+            ->get('https://api.flutterwave.com/v3/accounts/resolve', [
+                'account_number' => $request->account_number,
+                'account_bank'   => $request->bank_code,
+            ]);
+
+        $res = $response->json();
+
+        logger('Flutterwave resolve response', $res);
+
+        if (!is_array($res)) {
+            return response()->json(['error' => 'Flutterwave returned invalid response'], 500);
+        }
+
+        if (($res['status'] ?? '') !== 'success') {
+            return response()->json([
+                'account_name' => null,
+                'error' => $res['message'] ?? 'Verification failed'
+            ], 400);
+        }
+
         return response()->json([
-            'account_name' => 'JOHN DOE'
+            'account_name' => $res['data']['account_name']
         ]);
+    } catch (\Exception $e) {
+        logger('Flutterwave resolve exception', ['message' => $e->getMessage()]);
+        return response()->json(['error' => 'Server error: ' . $e->getMessage()], 500);
     }
-
-    $response = Http::withToken(config('services.flutterwave.secret_key'))
-        ->timeout(30)
-        ->get('https://api.flutterwave.com/v3/accounts/resolve', [
-            'account_number' => $request->account_number,
-            'account_bank'   => $request->bank_code,
-        ]);
-
-    logger('Flutterwave resolve response', $response->json());
-
-    $res = $response->json();
-
-    if (($res['status'] ?? '') !== 'success') {
-        return response()->json(['account_name' => null, 'error' => $res['message'] ?? 'Verification failed'], 400);
-    }
-
-    return response()->json([
-        'account_name' => $res['data']['account_name']
-    ]);
 }
 
 
 
-
-    // public function storeBank(Request $request)
-    // {
-    //     $request->validate([
-    //         'bank_name' => 'required',
-    //         'bank_code' => 'required',
-    //         'account_number' => 'required|digits:10',
-    //         'account_name' => 'required',
-    //     ]);
-
-    //     $user = auth()->user();
-
-    //     $bank = SellerBankAccount::updateOrCreate(
-    //         ['user_id' => $user->id],
-    //         $request->only([
-    //             'bank_name',
-    //             'bank_code',
-    //             'account_number',
-    //             'account_name'
-    //         ])
-    //     );
-
-    //     $response = Http::withToken(config('services.flutterwave.secret_key'))
-    //         ->post('https://api.flutterwave.com/v3/subaccounts', [
-    //             'account_bank' => $bank->bank_code,
-    //             'account_number' => $bank->account_number,
-    //             'business_name' => auth()->user()->name,
-    //             'business_email' => auth()->user()->email,
-    //             'split_type' => 'percentage', // or flat
-    //             'split_value' => 90,          // seller gets 90%, admin 10%
-    //             'business_mobile' => auth()->user()->phone,
-    //         ]);
-
-    //     $res = $response->json();
-
-    //     if ($res['status'] === 'success') {
-    //         $bank->flutterwave_subaccount_id = $res['data']['id'];
-    //         $bank->is_verified = 1;
-    //         $bank->save();
-    //     }
-
-
-    //     // 👇 LOCAL MODE — NO FLUTTERWAVE CALL
-    //     // if (app()->environment('local')) {
-
-    //     //     $bank->update([
-    //     //         'flutterwave_subaccount_id' => 'LOCAL_SUB_' . Str::random(12),
-    //     //         'is_verified' => true
-    //     //     ]);
-
-    //     //     return back()->with('success', 'Bank details saved (Local mode – subaccount mocked)');
-    //     // }
-    // }
 
     public function storeBank(Request $request)
 {
