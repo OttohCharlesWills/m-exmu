@@ -51,22 +51,23 @@
             {{-- BANK --}}
             <div class="mb-3">
                 <label class="block font-medium mb-1">Select Bank</label>
-                <select
-                    name="bank_code"
-                    id="bank_code"
-                    class="w-full border p-2 rounded"
-                    disabled
-                    required
-                >
-                    <option value="">Select bank</option>
+               <select
+    name="bank_code"
+    id="bank_code"
+    class="w-full border p-2 rounded"
+    disabled
+    required
+>
+    <option value="">Select bank</option>
 
-                    @foreach($banks as $fwBank)
-                        <option value="{{ $fwBank['code'] }}"
-                            {{ optional($bankAccount)->bank_code == $fwBank['code'] ? 'selected' : '' }}>
-                            {{ $fwBank['name'] }}
-                        </option>
-                    @endforeach
-                </select>
+    @foreach(collect($banks)->sortBy('name') as $fwBank)
+        <option value="{{ $fwBank['code'] }}"
+            {{ optional($bankAccount)->bank_code == $fwBank['code'] ? 'selected' : '' }}>
+            {{ $fwBank['name'] }}
+        </option>
+    @endforeach
+</select>
+
             </div>
 
             {{-- ACCOUNT NAME --}}
