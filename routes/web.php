@@ -105,6 +105,7 @@ Route::get('/products/{product}/buy', [ProductController::class, 'buy'])->name('
 // FOR SELLER BANK DETAILS
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('/seller/wallet', [SellerWalletController::class, 'index'])->name('seller.wallet');
     Route::get('/seller/bank', [SellerWalletController::class, 'index'])->name('seller.bank-details');
     Route::post('/seller/bank-account', [SellerWalletController::class, 'storeBank'])->name('seller.bank.store');
 });
@@ -113,7 +114,7 @@ Route::post('/resolve-bank', [SellerWalletController::class, 'resolveBank'])
     ->middleware('auth');
 
 
-Route::view('blogger/settings', 'seller.settings.settings')->name('seller.settings.settings');
+Route::view('seller/settings', 'seller.settings.settings')->name('seller.settings.settings');
 
 Route::get('/seller/profile/account', [ProfileController::class, 'accountForm'])
     ->name('seller.profile.account.form');

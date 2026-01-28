@@ -47,7 +47,7 @@
                 </li>
 
                 <li>
-                    <a href="{{route('seller.wallet.index')}}">
+                    <a href="{{route('seller.wallet')}}">
                         <i class="bi bi-tags"></i>
                         <span>Wallet</span>
                     </a>
