@@ -105,7 +105,7 @@ Route::get('/products/{product}/buy', [ProductController::class, 'buy'])->name('
 // FOR SELLER BANK DETAILS
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/seller/bank', [SellerWalletController::class, 'index'])->name('seller.wallet');
+    Route::get('/seller/bank', [SellerWalletController::class, 'index'])->name('seller.bank-details');
     Route::post('/seller/bank-account', [SellerWalletController::class, 'storeBank'])->name('seller.bank.store');
 });
 

@@ -14,20 +14,34 @@ use Illuminate\Support\Str;
 
 class SellerWalletController extends Controller
 {
-    public function index()
-    {
-        $user = auth()->user();
 
-        $wallet = Wallet::firstOrCreate(
-            ['user_id' => $user->id],
-            ['balance' => 0]
-        );
+public function index()
+{
+    $user = auth()->user();
 
-        return view('seller.bank-details', [
-            'wallet' => $wallet,
-            'bank' => $user->bankAccount
-        ]);
+    // Wallet
+    $wallet = Wallet::firstOrCreate(
+        ['user_id' => $user->id],
+        ['balance' => 0]
+    );
+
+    // Fetch banks from Flutterwave (THE IMPORTANT PART)
+    $banksResponse = Http::withToken(config('services.flutterwave.secret_key'))
+        ->get('https://api.flutterwave.com/v3/banks/NG');
+
+    if ($banksResponse->failed()) {
+        abort(500, 'Unable to fetch banks from Flutterwave');
     }
+
+    $banks = $banksResponse->json()['data'];
+
+    return view('seller.bank-details', [
+        'wallet' => $wallet,
+        'bankAccount' => $user->bankAccount, // ✅ MATCHES BLADE
+        'banks'  => $banks,             // flutterwave-approved banks
+    ]);
+}
+
 
     public function resolveBank(Request $request)
 {

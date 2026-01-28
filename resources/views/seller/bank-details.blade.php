@@ -32,87 +32,69 @@
         @endif
 
         <form action="{{ route('seller.bank.store') }}" method="POST">
-    @csrf
+            @csrf
 
-    {{-- ACCOUNT NUMBER FIRST --}}
-    <div class="mb-3">
-        <label class="block font-medium mb-1">Account Number</label>
-        <input
-            type="text"
-            id="account_number"
-            name="account_number"
-            maxlength="10"
-            class="w-full border p-2 rounded"
-            placeholder="Enter 10-digit account number"
-            required
-        />
-    </div>
+            {{-- ACCOUNT NUMBER --}}
+            <div class="mb-3">
+                <label class="block font-medium mb-1">Account Number</label>
+                <input
+                    type="text"
+                    id="account_number"
+                    name="account_number"
+                    maxlength="10"
+                    class="w-full border p-2 rounded"
+                    placeholder="Enter 10-digit account number"
+                    required
+                />
+            </div>
 
-    {{-- BANK (LOCKED UNTIL ACCOUNT NUMBER IS VALID) --}}
-    <div class="mb-3">
-        <label class="block font-medium mb-1">Select Bank</label>
-        <select
-            name="bank_code"
-            id="bank_code"
-            class="w-full border p-2 rounded"
-            disabled
-            required
-        >
-            <option value="">Select bank</option>
-            @php
-                $banks = [
-                    '011' => 'First Bank',
-                    '058' => 'GTBank',
-                    '044' => 'Access Bank',
-                    '033' => 'UBA',
-                    '057' => 'Zenith Bank',
-                    '032' => 'Union Bank',
-                    '035' => 'Wema Bank',
-                    '076' => 'Polaris Bank',
-                    '050' => 'EcoBank',
-                    '215' => 'Stanbic IBTC',
-                    '232' => 'Sterling Bank',
-                    '221' => 'Unity Bank',
-                    '301' => 'Jaiz Bank',
-                    '070' => 'Keystone Bank',
-                    '063' => 'Fidelity Bank',
-                    '056' => 'Heritage Bank'
-                ];
-            @endphp
+            {{-- BANK --}}
+            <div class="mb-3">
+                <label class="block font-medium mb-1">Select Bank</label>
+                <select
+                    name="bank_code"
+                    id="bank_code"
+                    class="w-full border p-2 rounded"
+                    disabled
+                    required
+                >
+                    <option value="">Select bank</option>
 
-            @foreach($banks as $code => $name)
-                <option value="{{ $code }}">{{ $name }}</option>
-            @endforeach
-        </select>
-    </div>
+                    @foreach($banks as $fwBank)
+                        <option value="{{ $fwBank['code'] }}"
+                            {{ optional($bankAccount)->bank_code == $fwBank['code'] ? 'selected' : '' }}>
+                            {{ $fwBank['name'] }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
 
-    {{-- ACCOUNT NAME (AUTO ONLY) --}}
-    <div class="mb-3">
-        <label class="block font-medium mb-1">Account Name</label>
-        <input
-            type="text"
-            id="account_name"
-            name="account_name"
-            readonly
-            class="w-full border p-2 rounded bg-gray-100"
-            placeholder="Will auto-fill after verification"
-        />
-    </div>
+            {{-- ACCOUNT NAME --}}
+            <div class="mb-3">
+                <label class="block font-medium mb-1">Account Name</label>
+                <input
+                    type="text"
+                    id="account_name"
+                    name="account_name"
+                    readonly
+                    class="w-full border p-2 rounded bg-gray-100"
+                    placeholder="Will auto-fill after verification"
+                />
+            </div>
 
-    {{-- HIDDEN BANK NAME (SERVER FILLS THIS) --}}
-    <input type="hidden" name="bank_name" id="bank_name" />
+            {{-- HIDDEN BANK NAME --}}
+            <input type="hidden" name="bank_name" id="bank_name" />
 
-    <button
-        type="submit"
-        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-    >
-        Save Bank Details
-    </button>
-</form>
+            <button
+                type="submit"
+                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+                Save Bank Details
+            </button>
+        </form>
 
-
-        {{-- Verified --}}
-        @if(isset($bank) && $bank->is_verified)
+        {{-- VERIFIED BADGE --}}
+        @if(optional($bankAccount)->is_verified)
             <p class="mt-3 text-green-600 font-medium">
                 ✅ Bank details verified with Flutterwave
             </p>
@@ -120,7 +102,7 @@
     </div>
 </div>
 
-{{-- 🔥 AUTO VERIFY SCRIPT --}}
+{{-- AUTO VERIFY SCRIPT --}}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const acctInput  = document.getElementById('account_number');
@@ -130,20 +112,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let controller = null;
 
-    // Step 1: Enable bank list only when account number is valid
     acctInput.addEventListener('input', () => {
         nameInput.value = '';
         bankSelect.value = '';
         bankName.value = '';
 
-        if (acctInput.value.trim().length === 10) {
-            bankSelect.disabled = false;
-        } else {
-            bankSelect.disabled = true;
-        }
+        bankSelect.disabled = acctInput.value.trim().length !== 10;
     });
 
-    // Step 2: Resolve account AFTER bank is selected
     bankSelect.addEventListener('change', () => {
         const accountNumber = acctInput.value.trim();
         const bankCode = bankSelect.value;
@@ -184,7 +160,4 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 </script>
-
-
-
 @endsection
