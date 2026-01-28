@@ -25,7 +25,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'state',
         'role',
         'password',
-        'avatar',               // added
+        'avatar',  
+        'about',
+        'is_verified',
+        'is_premium',             // added
     ];
 
 
@@ -47,4 +50,10 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function isPremiumActive()
+{
+    return $this->is_premium && $this->premium_expires_at?->isFuture();
+}
+
 }

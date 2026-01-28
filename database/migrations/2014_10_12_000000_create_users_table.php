@@ -25,11 +25,20 @@ return new class extends Migration
 
             $table->enum('role', ['admin', 'seller'])->default('seller');
 
+            // 🔥 SELLER SUBSCRIPTION FIELDS
+            $table->text('about')->nullable();                     // Seller description
+            $table->boolean('is_verified')->default(false);        // Verified after payment/admin
+            $table->boolean('is_premium')->default(false);         // Premium subscription
+            $table->timestamp('premium_expires_at')->nullable();   // When premium ends
+
             $table->string('password');
             $table->string('avatar')->nullable();
+
             $table->rememberToken();
             $table->timestamps();
         });
+
+
 
     }
 

@@ -8,6 +8,7 @@ use App\Http\Controllers\Seller\WalletController;
 use App\Http\Controllers\Seller\WithdrawalController;
 use App\Http\Controllers\Buyer\CheckoutController;
 use App\Http\Controllers\SellerWalletController;
+use App\Http\Controllers\SellerUpgradeController;
 use App\Models\Product;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Support\Facades\Auth;
@@ -129,3 +130,18 @@ Route::view('/seller/password', 'seller.changeofpassword.dob')->name('seller.cha
 
 Route::post('/seller/profile/account', [ProfileController::class, 'updateAccount'])->name('seller.profile.account');
 Route::post('/seller/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('seller.profile.avatar');
+
+Route::delete('/profile/delete', [SellerProfileController::class, 'destroy'])
+    ->name('profile.delete')
+    ->middleware('auth');
+
+    // PAYMENT PREMIUM
+
+// Upgrade page (payment UI)
+ Route::get('/upgrade', [SellerUpgradeController::class, 'index'])->name('seller.upgrade');
+
+// Process payment
+Route::post('/upgrade/pay', [SellerUpgradeController::class, 'pay'])->name('upgrade.pay');
+
+// Payment callback / webhook
+Route::get('/upgrade/callback', [SellerUpgradeController::class, 'callback'])->name('upgrade.callback');

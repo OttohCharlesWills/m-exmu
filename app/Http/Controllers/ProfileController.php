@@ -19,27 +19,34 @@ class ProfileController extends Controller
      * Update name, email, password
      */
     public function updateAccount(Request $request)
-    {
-        $user = Auth::user();
+{
+    $user = Auth::user();
 
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'password' => 'nullable|min:8|confirmed',
-        ]);
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email,' . $user->id,
+        'phone' => 'required|string|max:15',
+        'state' => 'required|string|max:100',
+        'about' => 'nullable|string|max:1000',
+        'password' => 'nullable|min:8|confirmed',
+    ]);
 
-        $user->name = $request->name;
-        $user->email = $request->email;
+    $user->name  = $request->name;
+    $user->email = $request->email;
+    $user->phone = $request->phone;
+    $user->state = $request->state;
+    $user->about = $request->about;
 
-        // Only update password if user entered one
-        if ($request->filled('password')) {
-            $user->password = Hash::make($request->password);
-        }
-
-        $user->save();
-
-        return back()->with('success', 'Account updated successfully');
+    // Only update password if user entered one
+    if ($request->filled('password')) {
+        $user->password = Hash::make($request->password);
     }
+
+    $user->save();
+
+    return back()->with('success', 'Account updated successfully');
+}
+
 
     /**
      * Update avatar (Cloudinary)
