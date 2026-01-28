@@ -88,10 +88,11 @@ public function resolveBank(Request $request)
     try {
         $response = Http::withToken(config('services.flutterwave.secret_key'))
             ->timeout(30)
-            ->get('https://api.flutterwave.com/v3/accounts/resolve', [
+            ->post('https://api.flutterwave.com/v3/accounts/resolve', [
                 'account_number' => $request->account_number,
                 'account_bank'   => $request->bank_code,
             ]);
+
 
         $res = $response->json();
 
