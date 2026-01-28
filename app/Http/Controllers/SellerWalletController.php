@@ -138,7 +138,7 @@ public function resolveBank(Request $request)
     */
     $verify = Http::withToken(config('services.flutterwave.secret_key'))
         ->timeout(30)
-        ->get('https://api.flutterwave.com/v3/accounts/resolve', [
+        ->post('https://api.flutterwave.com/v3/accounts/resolve', [
             'account_number' => $request->account_number,
             'account_bank'   => $request->bank_code,
         ]);
