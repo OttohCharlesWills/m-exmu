@@ -66,6 +66,13 @@
                         <span>Chats</span>
                     </a>
                 </li>
+
+                <li>
+                    <a href="#">
+                        <i class="bi bi-chat-left-text"></i>
+                        <span>Orders</span>
+                    </a>
+                </li>
             </ul>
 
             <div class="sidebar-footer">

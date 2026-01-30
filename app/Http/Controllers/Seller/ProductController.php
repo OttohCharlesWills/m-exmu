@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductApprovalLog;
 use Illuminate\Http\Request;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class ProductController extends Controller
 {
@@ -35,38 +36,47 @@ class ProductController extends Controller
     }
 
 
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name'        => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'price'       => 'required|numeric|min:0',
-            'quantity'    => 'required|integer|min:0',
-            'image'       => 'nullable|image|max:2048',
-        ]);
+   public function store(Request $request)
+{
+    $validated = $request->validate([
+        'name'        => 'required|string|max:255',
+        'description' => 'nullable|string',
+        'price'       => 'required|numeric|min:0',
+        'quantity'    => 'required|integer|min:0',
+        'image'       => 'nullable|image|max:2048',
+    ]);
 
-        if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('products', 'public');
-        }
+    $imageUrl = null;
 
-        $product = Product::create([
-            'seller_id'   => auth()->id(),
-            'name'        => $validated['name'],
-            'description' => $validated['description'] ?? null,
-            'price'       => $validated['price'],
-            'quantity'    => $validated['quantity'],
-            'image'       => $validated['image'] ?? null,
-            'status'      => 'pending',
-        ]);
+    if ($request->hasFile('image')) {
+        $upload = Cloudinary::upload(
+            $request->file('image')->getRealPath(),
+            [
+                'folder' => 'products', // cloudinary folder
+            ]
+        );
 
-        ProductApprovalLog::create([
-            'product_id' => $product->id,
-            'seller_id'  => auth()->id(),
-            'status'     => 'pending',
-        ]);
-
-        return redirect()->back()->with('success', 'Product submitted for admin approval.');
+        $imageUrl = $upload->getSecurePath(); // 🔥 THIS is what we save
     }
+
+    $product = Product::create([
+        'seller_id'   => auth()->id(),
+        'name'        => $validated['name'],
+        'description' => $validated['description'] ?? null,
+        'price'       => $validated['price'],
+        'quantity'    => $validated['quantity'],
+        'image'       => $imageUrl, // ✅ cloudinary URL
+        'status'      => 'pending',
+    ]);
+
+    ProductApprovalLog::create([
+        'product_id' => $product->id,
+        'seller_id'  => auth()->id(),
+        'status'     => 'pending',
+    ]);
+
+    return back()->with('success', 'Product submitted for admin approval.');
+}
 
     public function buy(Product $product)
 {

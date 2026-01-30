@@ -9,7 +9,7 @@
 
             <ul class="sidebar-links">
                 <li>
-                    <a href="{{ url('/home') }}">
+                    <a href="">
                         <i class="bi bi-speedometer2"></i>
                         <span>Dashboard</span>
                     </a>
@@ -18,22 +18,22 @@
                 <li class="sidebar-item has-sub">
                     <a href="javascript:void(0)" class="sidebar-link" id="blogToggle">
                         <i class="bi bi-pencil-square"></i>
-                        <span>Blogs</span>
+                        <span>Products</span>
                         <i class="bi bi-chevron-down ms-auto arrow"></i>
                     </a>
 
                     <ul class="submenu">
                         <li>
-                            <a href="">
+                            <a href="{{route('admin.products.index')}}">
                                 <i class="bi bi-plus-circle"></i>
-                                <span>Create Blog</span>
+                                <span>All Products</span>
                             </a>
                         </li>
 
                         <li>
-                            <a href="">
+                            <a href="{{route('admin.products.pending')}}">
                                 <i class="bi bi-journals"></i>
-                                <span>View Blogs</span>
+                                <span>Pending Products</span>
                             </a>
                         </li>
                     </ul>
@@ -47,7 +47,7 @@
                 </li>
 
                 <li>
-                    <a href="#">
+                    <a href="{{route('admin.users.index')}}">
                         <i class="bi bi-people"></i>
                         <span>Users</span>
                     </a>

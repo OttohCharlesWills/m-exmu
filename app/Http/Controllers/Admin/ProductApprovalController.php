@@ -16,6 +16,15 @@ class ProductApprovalController extends Controller
         return view('admin.products.pending', compact('products'));
     }
 
+    public function allProducts()
+    {
+        // get ALL products with their seller info
+        $products = Product::with('seller')->latest()->get();
+
+        return view('admin.products.index', compact('products'));
+    }
+
+
     public function approve(Request $request, $id)
     {
         $product = Product::findOrFail($id);

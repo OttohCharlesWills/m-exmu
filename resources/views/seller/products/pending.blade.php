@@ -9,7 +9,11 @@
             <h3 class="product-name">{{ $product->name }}</h3>
 
             <div class="product-image">
-                <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}">
+                @if($product->image)
+                    <img src="{{ $product->image }}" alt="{{ $product->name }}">
+                @else
+                    <div class="no-image">No Image</div>
+                @endif
             </div>
 
             <p class="product-price">₦{{ number_format($product->price, 2) }}</p>

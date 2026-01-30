@@ -13,6 +13,8 @@ use App\Models\Product;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admin\AdminDashboardController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -24,6 +26,15 @@ use App\Http\Controllers\ProfileController;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
+
+Route::middleware(['auth'])->group(function () {
+
+    Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])
+        ->name('admin.dashboard');
+
+});
+
 
 Route::get('/email/verify', function () {
     return view('auth.verify');
@@ -60,9 +71,13 @@ Route::middleware(['auth'])->group(function () {
 
     // Admin approval routes
     Route::prefix('admin')->name('admin.')->group(function () {
-        Route::get('/products/pending', [ProductApprovalController::class, 'index'])->name('products.pending');
-        Route::post('/products/{id}/approve', [ProductApprovalController::class, 'approve'])->name('products.approve');
-        Route::post('/products/{id}/reject', [ProductApprovalController::class, 'reject'])->name('products.reject');
+        Route::get('/admin/products/pending', [ProductApprovalController::class, 'index'])->name('products.pending');
+        Route::post('/admin/products/{id}/approve', [ProductApprovalController::class, 'approve'])->name('products.approve');
+        Route::post('/admin/products/{id}/reject', [ProductApprovalController::class, 'reject'])->name('products.reject');
+        Route::get('/admin/products', [ProductApprovalController::class, 'allProducts'])->name('products.index');
+        // Show all users
+        Route::get('/users', [AdminDashboardController::class, 'users'])->name('users.index');
+        Route::post('/users/toggle/{user}', [AdminDashboardController::class, 'toggle'])->name('users.toggle');
     });
 
 });
