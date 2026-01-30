@@ -2,10 +2,10 @@
 
 @section('sellercontent')
 <div class="container mx-auto p-4">
-    <h2 class="text-2xl font-bold mb-4">Your Wallet</h2>
+    <h2 class="text-2xl font-bold mb-4">Add Bank Account</h2>
 
     {{-- Wallet Balance --}}
-    <div class="mb-6 p-4 border rounded bg-gray-100">
+    {{-- <div class="mb-6 p-4 border rounded bg-gray-100">
         <p class="text-lg">
             Current Balance:
             <span class="font-bold">₦{{ number_format($wallet->balance, 2) }}</span>
@@ -13,7 +13,7 @@
         <p>Status:
             <span class="font-medium">{{ ucfirst($wallet->status) }}</span>
         </p>
-    </div>
+    </div> --}}
 
     {{-- Bank Details --}}
     <div class="p-4 border rounded">

@@ -47,7 +47,7 @@
                 </li>
 
                 <li>
-                    <a href="{{route('seller.wallet')}}">
+                    <a href="{{route('wallet.index')}}">
                         <i class="bi bi-tags"></i>
                         <span>Wallet</span>
                     </a>
@@ -55,7 +55,7 @@
 
                 <li>
                     <a href="{{ route('seller.settings.settings') }}">
-                        <i class="bi bi-people"></i>
+                        <i class="bi bi-gear"></i>
                         <span>Settings</span>
                     </a>
                 </li>
@@ -63,14 +63,7 @@
                 <li>
                     <a href="#">
                         <i class="bi bi-chat-left-text"></i>
-                        <span>Comments</span>
-                    </a>
-                </li>
-
-                <li>
-                    <a href="#">
-                        <i class="bi bi-gear"></i>
-                        <span>Settings</span>
+                        <span>Chats</span>
                     </a>
                 </li>
             </ul>

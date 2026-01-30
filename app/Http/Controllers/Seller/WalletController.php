@@ -10,16 +10,25 @@ use Illuminate\Http\Request;
 
 class WalletController extends Controller
 {
-    public function index()
-    {
-        $wallet = Wallet::firstOrCreate(
-            ['user_id' => auth()->id()],
-            ['balance' => 0]
-        );
+public function index()
+{
+    $user = auth()->user();
 
-        $transactions = $wallet->transactions()->latest()->get();
+    $wallet = Wallet::firstOrCreate(
+        ['user_id' => $user->id],
+        ['balance' => 0]
+    );
 
-        return view('seller.wallet.index', compact('wallet', 'transactions'));
-    }
+    $transactions = $wallet->transactions()
+        ->latest()
+        ->limit(50) // don’t load 10k rows like a madman
+        ->get();
+
+    return view('seller.wallet.index', [
+        'wallet' => $wallet,
+        'transactions' => $transactions,
+    ]);
+}
+
 }
 

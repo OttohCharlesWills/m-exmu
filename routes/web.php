@@ -67,10 +67,10 @@ Route::middleware(['auth'])->group(function () {
 
 });
 
+    Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');
 
 Route::prefix('seller')->name('seller.')->middleware('auth')->group(function () {
 
-    Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');
 
     Route::get('/wallet/withdraw', [WithdrawalController::class, 'create'])->name('wallet.withdraw');
     Route::post('/wallet/withdraw', [WithdrawalController::class, 'store'])->name('wallet.withdraw.store');
