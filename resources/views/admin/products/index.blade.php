@@ -69,13 +69,13 @@
                             </form>
                             @endif
 
-                            {{-- SET PENDING --}}
+                            {{-- SET PENDING
                             @if($product->status !== 'pending')
                             <form method="POST" action="{{ route('admin.products.pending-again', $product->id) }}">
                                 @csrf
                                 <button type="submit" class="btn btn-warning btn-sm">⏳ Pending</button>
                             </form>
-                            @endif
+                            @endif --}}
 
                         </td>
                     </tr>

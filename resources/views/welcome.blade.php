@@ -531,6 +531,137 @@
 
                 </div>
             </div>
+        <!-- Cart Sidebar -->
+        <div id="cartSidebar"
+            style="display:none"
+            class="fixed top-0 right-0 w-80 h-full bg-white shadow-lg p-4 z-50 overflow-y-auto">
+
+            <h2 class="font-bold text-lg mb-4">Your Cart</h2>
+
+            <div id="cartItems" class="space-y-2">
+                <p class="text-gray-500">Cart is empty</p>
+            </div>
+
+            <div class="mt-4">
+                <input type="text" id="guestName" placeholder="Your Name"
+                    class="w-full mb-2 p-2 border rounded">
+
+                <input type="email" id="guestEmail" placeholder="Your Email"
+                    class="w-full mb-2 p-2 border rounded">
+            </div>
+
+            <button onclick="checkoutCart()"
+                    class="mt-4 w-full bg-blue-600 text-white py-2 rounded">
+                Checkout
+            </button>
+        </div>
+
+        <!-- Floating Cart Button -->
+        <button id="cartBtn"
+                class="fixed bottom-6 right-6 bg-blue-600 text-white p-4 rounded-full shadow-lg z-50">
+            🛒 <span id="cartCount">0</span>
+        </button>
+        <div class="max-w-6xl mx-auto mt-12 px-6 relative z-20">
+    <h2 class="text-white text-2xl mb-6 text-center">Available Products</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @foreach($products as $product)
+            <div class="bg-white shadow p-4 rounded-lg text-center">
+                <h2 class="font-bold text-lg mb-2">{{ $product->name }}</h2>
+
+                <img src="{{ asset('storage/'.$product->image) }}"
+                     class="mx-auto mb-2 h-40 object-cover">
+
+                <p class="text-gray-700 mb-1">${{ $product->price }}</p>
+                <p class="text-gray-500 text-sm mb-2">
+                    {{ $product->description }}
+                </p>
+
+                <button
+                    onclick="addToCart({{ $product->id }}, '{{ $product->name }}', {{ $product->price }})"
+                    class="bg-green-600 text-white py-1 px-4 rounded hover:bg-green-700">
+                    Add to Cart
+                </button>
+            </div>
+        @endforeach
+    </div>
+</div>
+
+<script>
+let cart = [];
+
+const cartBtn = document.getElementById('cartBtn');
+const cartSidebar = document.getElementById('cartSidebar');
+const cartItems = document.getElementById('cartItems');
+const cartCount = document.getElementById('cartCount');
+
+cartBtn.addEventListener('click', () => {
+    cartSidebar.style.display =
+        cartSidebar.style.display === 'none' ? 'block' : 'none';
+});
+
+function addToCart(id, name, price) {
+    const existing = cart.find(i => i.id === id);
+    if (existing) {
+        existing.qty++;
+    } else {
+        cart.push({ id, name, price, qty: 1 });
+    }
+    updateCart();
+}
+
+function updateCart() {
+    cartCount.textContent = cart.reduce((s, i) => s + i.qty, 0);
+
+    if (cart.length === 0) {
+        cartItems.innerHTML = '<p class="text-gray-500">Cart is empty</p>';
+        return;
+    }
+
+    cartItems.innerHTML = '';
+    cart.forEach(item => {
+        cartItems.innerHTML += `
+            <div class="flex justify-between">
+                <span>${item.name} x${item.qty}</span>
+                <span>$${item.price * item.qty}</span>
+            </div>
+        `;
+    });
+}
+
+function checkoutCart() {
+    if (cart.length === 0) {
+        alert('Cart is empty!');
+        return;
+    }
+
+    const name = document.getElementById('guestName').value;
+    const email = document.getElementById('guestEmail').value;
+
+    if (!name || !email) {
+        alert('Enter name and email');
+        return;
+    }
+
+    fetch('/checkout/cart', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ cart, name, email })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = data.checkoutUrl;
+        } else {
+            alert('Checkout failed');
+        }
+    });
+}
+</script>
+
         
     </body>
 </html>
