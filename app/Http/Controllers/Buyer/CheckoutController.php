@@ -41,9 +41,16 @@ class CheckoutController extends Controller
     ],
 
     "meta" => [
-        "product_id" => $product->id,
-        "seller_id" => $product->seller_id
+        [
+            "metaname"  => "product_id",
+            "metavalue" => $product->id
+        ],
+        [
+            "metaname"  => "seller_id",
+            "metavalue" => $product->seller_id
+        ]
     ]
+
 ];
 
 
@@ -90,9 +97,13 @@ class CheckoutController extends Controller
             "email" => $email,
             "name" => $name
         ],
-        "meta" => [
-            "cart" => $cart
-        ]
+"meta" => [
+    [
+        "metaname"  => "cart",
+        "metavalue" => json_encode($cart)
+    ]
+]
+
     ];
 
     // Flutterwave API call (same as your pay function)
