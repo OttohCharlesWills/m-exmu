@@ -225,35 +225,5 @@ public function resolveBank(Request $request)
 }
 
 
-// public function resolveBank(Request $request)
-// {
-//     $request->validate([
-//         'bank_code' => 'required',
-//         'account_number' => 'required|digits:10',
-//     ]);
-
-//     $response = Http::withToken(config('services.flutterwave.secret_key'))
-//         ->timeout(30)
-//         ->get('https://api.flutterwave.com/v3/accounts/resolve', [
-//             'account_bank'   => $request->bank_code,
-//             'account_number' => $request->account_number,
-//         ]);
-
-//     if ($response->failed()) {
-//         return response()->json(['error' => 'Verification failed'], 422);
-//     }
-
-//     $res = $response->json();
-
-//     if (($res['status'] ?? '') !== 'success') {
-//         return response()->json(['error' => $res['message']], 422);
-//     }
-
-//     return response()->json([
-//         'account_name' => $res['data']['account_name']
-//     ]);
-// }
-
-
 
 }
